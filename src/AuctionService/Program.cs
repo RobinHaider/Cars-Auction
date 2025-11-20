@@ -21,4 +21,14 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Migrate and seed the database
+try
+{
+    DbInitializer.Initialize(app);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"An error occurred while seeding the database: {ex.Message}");
+}
+
 app.Run();
