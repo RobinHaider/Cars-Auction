@@ -62,4 +62,45 @@ public class AuctionsController : ControllerBase
         return CreatedAtAction(nameof(GetAuctionById), new { id = auction.Id }, _mapper.Map<AuctionDto>(auction));
     }
 
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateAuction(Guid id, UpdateAuctionDto auctionDto)
+    {
+        var auction = await _context.Auctions.Include(a => a.Item)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (auction == null) return NotFound();
+
+        // TODO: check if current user is the seller
+
+        auction.Item.Make = auctionDto.Make ?? auction.Item.Make;
+        auction.Item.Model = auctionDto.Model ?? auction.Item.Model;
+        auction.Item.Color = auctionDto.Color ?? auction.Item.Color;
+        auction.Item.Mileage = auctionDto.Mileage ?? auction.Item.Mileage;
+        auction.Item.Year = auctionDto.Year ?? auction.Item.Year;
+
+        var result = await _context.SaveChangesAsync() > 0;
+
+        if (result) return Ok();
+
+        return BadRequest("Failed to update auction");
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteAuction(Guid id)
+    {
+        var auction = await _context.Auctions.FindAsync(id);
+
+        if (auction == null) return NotFound();
+
+        // TODO: check if current user is the seller
+
+        _context.Auctions.Remove(auction);
+
+        var result = await _context.SaveChangesAsync() > 0;
+
+        if (result) return Ok();
+
+        return BadRequest("Failed to delete auction");
+    }
+
 }
