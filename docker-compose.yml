@@ -34,6 +34,19 @@ services:
     depends_on:
       - postgres
 
+  mongodb:
+    image: mongo:latest
+    container_name: local_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dev
+      MONGO_INITDB_ROOT_PASSWORD: dev123
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongodb_data:/data/db
+
 volumes:
   postgres_data:
   pgadmin_data:
+  mongodb_data:
