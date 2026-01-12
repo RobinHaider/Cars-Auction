@@ -2,6 +2,7 @@ using Polly;
 using Polly.Extensions.Http;
 using SearchService.Data;
 using SearchService.Services;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(GetRetryPolicy());
+
+// Register MassTransit with RabbitMQ
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, config) =>
+    {
+        config.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 
