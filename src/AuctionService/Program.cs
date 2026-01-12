@@ -21,6 +21,12 @@ builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, config) =>
     {
+        config.Host("localhost", "/", h =>
+        {
+            h.Username("dev");
+            h.Password("dev123");
+        });
+
         config.ConfigureEndpoints(context);
     });
 });
