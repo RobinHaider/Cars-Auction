@@ -3,17 +3,29 @@ using Polly.Extensions.Http;
 using SearchService.Data;
 using SearchService.Services;
 using MassTransit;
+using SearchService.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Register AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(GetRetryPolicy());
 
 // Register MassTransit with RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
+    // Register the consumer
+    x.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
+
+    // Use Kebab Case for endpoint names
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
+
+    // Configure RabbitMQ
     x.UsingRabbitMq((context, config) =>
     {
         config.ConfigureEndpoints(context);
