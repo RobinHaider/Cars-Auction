@@ -3,7 +3,8 @@ using AuctionService.DTOs;
 using AuctionService.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Microsoft.AspNetCore.Http;
+using Contracts;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +16,14 @@ public class AuctionsController : ControllerBase
 {
     private readonly AuctionDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionsController(AuctionDbContext context, IMapper mapper)
+    public AuctionsController(AuctionDbContext context, IMapper mapper,
+        IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _mapper = mapper;
+        _publishEndpoint = publishEndpoint;
     }
 
     [HttpGet]
@@ -64,7 +68,13 @@ public class AuctionsController : ControllerBase
 
         if (!result) return BadRequest("Failed to create auction");
 
-        return CreatedAtAction(nameof(GetAuctionById), new { id = auction.Id }, _mapper.Map<AuctionDto>(auction));
+        // map to AuctionDto
+        var newAuction = _mapper.Map<AuctionDto>(auction);
+
+        // publish event to message broker
+        await _publishEndpoint.Publish(_mapper.Map<AuctionCreated>(newAuction));
+
+        return CreatedAtAction(nameof(GetAuctionById), new { id = auction.Id }, newAuction);
     }
 
     [HttpPut("{id}")]
