@@ -19,6 +19,15 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // Register MassTransit with RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
+    // Configure the Outbox pattern with Entity Framework
+    x.AddEntityFrameworkOutbox<AuctionDbContext>(o =>
+    {
+        o.QueryDelay = TimeSpan.FromSeconds(10);
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
+    // Configure RabbitMQ
     x.UsingRabbitMq((context, config) =>
     {
         config.Host("localhost", "/", h =>
