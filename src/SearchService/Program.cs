@@ -28,6 +28,15 @@ builder.Services.AddMassTransit(x =>
     // Configure RabbitMQ
     x.UsingRabbitMq((context, config) =>
     {
+        // Configure the receive endpoint for auction created events
+        config.ReceiveEndpoint("search-auction-created", e =>
+        {
+            // Configure message retry policy
+            e.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(5)));
+            e.ConfigureConsumer<AuctionCreatedConsumer>(context);
+        });
+
+        // RabbitMQ host configuration
         config.Host("localhost", "/", h =>
         {
             h.Username("dev");
