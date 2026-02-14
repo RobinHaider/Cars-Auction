@@ -44,6 +44,25 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  auction-Service:
+    image: robinhaider/auction-service:latest
+    build:
+      context: .
+      dockerfile: src/AuctionService/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=localdb;Username=dev;Password=dev123;
+      IdentityServiceUrl: http://identity-service:5001
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: dev
+      RabbitMQ__Password: dev123
+    ports:
+      - '7006:80'
+    depends_on:
+      - postgres
+      - rabbitmq
+
 volumes:
   postgres_data:
   mongodb_data:
