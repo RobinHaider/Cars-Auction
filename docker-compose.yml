@@ -82,6 +82,20 @@ services:
       - mongodb
       - rabbitmq
 
+  identity-service:
+    image: robinhaider/identity-service:latest
+    build:
+      context: .
+      dockerfile: src/IdentityService/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=identity;Username=dev;Password=dev123;
+    ports:
+      - '5001:80'
+    depends_on:
+      - postgres
+
 volumes:
   postgres_data:
   mongodb_data:
