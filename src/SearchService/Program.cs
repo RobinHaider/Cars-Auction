@@ -37,11 +37,11 @@ builder.Services.AddMassTransit(x =>
         });
 
         // RabbitMQ host configuration
-        config.Host("localhost", "/", h =>
-        {
-            h.Username("dev");
-            h.Password("dev123");
-        });
+        config.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+       {
+           h.Username(builder.Configuration.GetValue("RabbitMQ:Username", "dev"));
+           h.Password(builder.Configuration.GetValue("RabbitMQ:Password", "dev123"));
+       });
 
         config.ConfigureEndpoints(context);
     });

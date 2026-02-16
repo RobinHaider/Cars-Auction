@@ -44,7 +44,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  auction-Service:
+  auction-service:
     image: robinhaider/auction-service:latest
     build:
       context: .
@@ -61,6 +61,25 @@ services:
       - '7006:80'
     depends_on:
       - postgres
+      - rabbitmq
+
+  search-service:
+    image: robinhaider/search-service:latest
+    build:
+      context: .
+      dockerfile: src/SearchService/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__MongoDbConnection: mongodb://dev:dev123@mongodb:27017
+      AuctionServiceUrl: http://auction-service
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: dev
+      RabbitMQ__Password: dev123
+    ports:
+      - '7005:80'
+    depends_on:
+      - mongodb
       - rabbitmq
 
 volumes:
