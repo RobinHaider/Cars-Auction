@@ -82,6 +82,17 @@ services:
       - mongodb
       - rabbitmq
 
+  gateway-service:
+    image: robinhaider/gateway-service:latest
+    build:
+      context: .
+      dockerfile: src/GatewayService/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:80
+    ports:
+      - '6001:80'
+
   identity-service:
     image: robinhaider/identity-service:latest
     build:
