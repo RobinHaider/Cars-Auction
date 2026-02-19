@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U dev -d localdb']
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
 
@@ -30,6 +30,20 @@ services:
       - '27018:27017'
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mongosh',
+          '--quiet',
+          '127.0.0.1/test',
+          '--eval',
+          "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -43,6 +57,11 @@ services:
       - '15672:15672'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   auction-service:
     image: robinhaider/auction-service:latest
@@ -60,8 +79,10 @@ services:
     ports:
       - '7006:80'
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   search-service:
     image: robinhaider/search-service:latest
@@ -79,9 +100,10 @@ services:
     ports:
       - '7005:80'
     depends_on:
-      - mongodb
-      - rabbitmq
-
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
   gateway-service:
     image: robinhaider/gateway-service:latest
     build:
@@ -105,7 +127,8 @@ services:
     ports:
       - '5001:80'
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
